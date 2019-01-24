@@ -1,5 +1,7 @@
 package com.greenfox.lvlup.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenfox.lvlup.model.Badge;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,14 +28,19 @@ public class MainControllerTest {
       2,
       3,
       "Hello World! My English is bloody gorgeous.",
-      new ArrayList<String>(Arrays.asList("balazs.jozsef", "benedek.vamosi", "balazs.barna")));
+      new ArrayList<>(Arrays.asList("balazs.jozsef", "benedek.vamosi", "balazs.barna")));
 
-  String badgeInJson = "{ \"badgeName\": \"" + "English speaker" + "\", " +
+  Badge inValidBadge = new Badge("English speaker",
+      2,
+      3,
+      "Hello World! My English is bloody gorgeous."
+      );
+
+  /*String badgeInJson = "{ \"badgeName\": \"" + "English speaker" + "\", " +
         "\"oldLVL\": \"" + 2 + "\"," +
         "\"pitchedLVL\": \"" + 3 + "\", " +
         "\"pitchMessage\": \"" + "Hello World! My English is bloody gorgeous." + "\", " +
-        "\"holders\": [\"balazs.jozsef\", \"balazs.jozsef\", \"balazs.jozsef\"]}";
-
+        "\"holders\": [\"balazs.jozsef\", \"balazs.jozsef\", \"balazs.jozsef\"]}";*/
 
   String token = "token123";
 
@@ -44,17 +51,53 @@ public class MainControllerTest {
 
   @Before
   public void setup() throws Exception {
-    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+    this.mockMvc = MockMvcBuilders.standaloneSetup(new MainController()).build();
+    //this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+  }
+
+  @Test
+  public void pitchBadgeValidHeaderAndBody() throws Exception{
+    this.mockMvc.perform(post("/pitch")
+        .contentType(MediaType.APPLICATION_JSON)
+        .header("userTokenAuth", token)
+        .content(stringify(validBadge)))
+        .andExpect(status().isCreated())
+        .andReturn();
+  }
+
+ /* @Test
+  public void pitchBadgeInvalidHeaderMissingContentType() throws Exception{
+    this.mockMvc.perform(post("/pitch")
+        .contentType(MediaType.)
+        .header("userTokenAuth", token)
+        .content(stringify(validBadge)))
+        .andExpect(status().isUnauthorized())
+        .andReturn();
+  }*/
+
+  @Test
+  public void pitchBadgeInvalidHeaderInvalidToken() throws Exception{
+    this.mockMvc.perform(post("/pitch")
+        .contentType(MediaType.APPLICATION_JSON)
+        .header("userTokenAuth", "")
+        .content(stringify(validBadge)))
+        .andExpect(status().isUnauthorized())
+        .andReturn();
+  }
+
+  @Test
+  public void pitchBadgeInvalidRequestBody() throws Exception{
+    this.mockMvc.perform(post("/pitch")
+        .contentType(MediaType.APPLICATION_JSON)
+        .header("userTokenAuth", token)
+        .content(stringify(inValidBadge)))
+        .andExpect(status().isBadRequest())
+        .andReturn();
   }
 
 
-  @Test
-  public void pitchBadge() throws Exception{
-      this.mockMvc.perform(post("/pitch")
-          .contentType(MediaType.APPLICATION_JSON)
-          .header("userTokenAuth", token)
-          .content(badgeInJson))
-          .andExpect(status().isCreated())
-          .andReturn();
+
+  private String stringify(Object object) throws JsonProcessingException {
+    return new ObjectMapper().writeValueAsString(object);
   }
 }

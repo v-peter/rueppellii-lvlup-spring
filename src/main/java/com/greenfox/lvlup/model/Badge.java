@@ -17,12 +17,25 @@ public class Badge {
   @NotNull(message = "Holders are required.")
   List<String> holders;
 
-  public Badge(@NotNull(message = "Badge name is required.") String badgeName, @NotNull(message = "Old level is required.") int oldLVL, @NotNull(message = "Pitched level is required.") int pitchedLVL, @NotNull(message = "Pitch message is required.") String pitchMessage, @NotNull(message = "Holders are required.") List<String> holders) {
+  public Badge(@NotNull(message = "Badge name is required.") String badgeName, @NotNull(message = "Old level is required.") int oldLVL,
+               @NotNull(message = "Pitched level is required.") int pitchedLVL,
+               @NotNull(message = "Pitch message is required.") String pitchMessage, @NotNull(message = "Holders are required.") List<String> holders) {
     this.badgeName = badgeName;
     this.oldLVL = oldLVL;
     this.pitchedLVL = pitchedLVL;
     this.pitchMessage = pitchMessage;
     this.holders = holders;
+  }
+
+  public Badge(@NotNull(message = "Badge name is required.") String badgeName, @NotNull(message = "Old level is required.") int oldLVL,
+               @NotNull(message = "Pitched level is required.") int pitchedLVL, @NotNull(message = "Pitch message is required.") String pitchMessage) {
+    this.badgeName = badgeName;
+    this.oldLVL = oldLVL;
+    this.pitchedLVL = pitchedLVL;
+    this.pitchMessage = pitchMessage;
+  }
+
+  public Badge() {
   }
 
   public String getBadgeName() {
