@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -34,29 +35,19 @@ public class MainControllerTest {
       2,
       3,
       "Hello World! My English is bloody gorgeous."
-      );
-
-  /*String badgeInJson = "{ \"badgeName\": \"" + "English speaker" + "\", " +
-        "\"oldLVL\": \"" + 2 + "\"," +
-        "\"pitchedLVL\": \"" + 3 + "\", " +
-        "\"pitchMessage\": \"" + "Hello World! My English is bloody gorgeous." + "\", " +
-        "\"holders\": [\"balazs.jozsef\", \"balazs.jozsef\", \"balazs.jozsef\"]}";*/
+  );
 
   String token = "token123";
-
-  @Autowired
-  private WebApplicationContext wac;
 
   private MockMvc mockMvc;
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     this.mockMvc = MockMvcBuilders.standaloneSetup(new MainController()).build();
-    //this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
   }
 
   @Test
-  public void pitchBadgeValidHeaderAndBody() throws Exception{
+  public void pitchBadgeValidHeaderAndBodyCheckStatus() throws Exception {
     this.mockMvc.perform(post("/pitch")
         .contentType(MediaType.APPLICATION_JSON)
         .header("userTokenAuth", token)
@@ -65,18 +56,27 @@ public class MainControllerTest {
         .andReturn();
   }
 
- /* @Test
-  public void pitchBadgeInvalidHeaderMissingContentType() throws Exception{
+  @Test
+  public void pitchBadgeValidHeaderAndBodyCheckMessage() throws Exception {
     this.mockMvc.perform(post("/pitch")
-        .contentType(MediaType.)
+        .contentType(MediaType.APPLICATION_JSON)
         .header("userTokenAuth", token)
         .content(stringify(validBadge)))
-        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.message").value("Success"))
         .andReturn();
-  }*/
+  }
 
   @Test
-  public void pitchBadgeInvalidHeaderInvalidToken() throws Exception{
+  public void pitchBadgeMissingContentTypeCheckStatus() throws Exception {
+    this.mockMvc.perform(post("/pitch")
+        .header("userTokenAuth", token)
+        .content(stringify(validBadge)))
+        .andExpect(status().isUnsupportedMediaType())
+        .andReturn();
+  }
+
+  @Test
+  public void pitchBadgeInvalidTokenCheckStatus() throws Exception {
     this.mockMvc.perform(post("/pitch")
         .contentType(MediaType.APPLICATION_JSON)
         .header("userTokenAuth", "")
@@ -86,7 +86,17 @@ public class MainControllerTest {
   }
 
   @Test
-  public void pitchBadgeInvalidRequestBody() throws Exception{
+  public void pitchBadgeInvalidTokenCheckErrorMessage() throws Exception {
+    this.mockMvc.perform(post("/pitch")
+        .contentType(MediaType.APPLICATION_JSON)
+        .header("userTokenAuth", "")
+        .content(stringify(validBadge)))
+        .andExpect(jsonPath("$.error").value("Unauthorized"))
+        .andReturn();
+  }
+
+  @Test
+  public void pitchBadgeInvalidRequestBody() throws Exception {
     this.mockMvc.perform(post("/pitch")
         .contentType(MediaType.APPLICATION_JSON)
         .header("userTokenAuth", token)
@@ -94,7 +104,6 @@ public class MainControllerTest {
         .andExpect(status().isBadRequest())
         .andReturn();
   }
-
 
 
   private String stringify(Object object) throws JsonProcessingException {
